@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Diwali Celebration - Feedback Form</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#fff8e6; color:#333; padding:20px; }
+    .container { max-width:640px; margin:0 auto; background:#fff; padding:18px; border-radius:10px; box-shadow:0 6px 18px rgba(0,0,0,0.08); }
+    h1 { margin-top:0; color:#b45f06; }
+    label { display:block; margin:12px 0 6px; font-weight:600; }
+    input[type="text"], input[type="tel"], select, textarea {
+      width:100%; padding:10px; border:1px solid #ddd; border-radius:6px; box-sizing:border-box;
+    }
+    .row { display:flex; gap:10px; }
+    .row .col { flex:1; }
+    .small { font-size:0.9rem; color:#666; margin-top:6px; }
+    button { background:#ff7f2a; color:white; padding:10px 14px; border:none; border-radius:8px; cursor:pointer; font-weight:700; }
+    .note { font-size:0.9rem; color:#444; margin-top:12px; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Diwali Celebration - Feedback</h1>
+    <p class="small">Please share your feedback. After submit, WhatsApp will open with a pre-filled message — just press send.</p>
+
+    <form id="feedbackForm">
+      <label for="name">Name</label>
+      <input id="name" name="name" type="text" placeholder="Your name" required />
+
+      <label for="phone">Your Phone (optional)</label>
+      <input id="phone" name="phone" type="tel" placeholder="e.g. 9876543210" />
+
+      <label for="rating">How would you rate the Diwali games?</label>
+      <select id="rating" name="rating" required>
+        <option value="">-- Select rating --</option>
+        <option value="5 - Excellent">5 - Excellent</option>
+        <option value="4 - Very Good">4 - Very Good</option>
+        <option value="3 - Good">3 - Good</option>
+        <option value="2 - Average">2 - Average</option>
+        <option value="1 - Poor">1 - Poor</option>
+      </select>
+
+      <label>Which games did you enjoy? (tick all that apply)</label>
+      <div>
+        <label><input type="checkbox" name="games" value="Musical Chairs" /> Musical Chairs</label><br/>
+        <label><input type="checkbox" name="games" value="Relay Race" /> Relay Race</label><br/>
+        <label><input type="checkbox" name="games" value="Tug of War" /> Tug of War</label><br/>
+        <label><input type="checkbox" name="games" value="Treasure Hunt" /> Treasure Hunt</label>
+      </div>
+
+      <label for="comments">Comments / Suggestions</label>
+      <textarea id="comments" name="comments" rows="4" placeholder="Write anything about the event..."></textarea>
+
+      <div style="margin-top:14px;">
+        <button type="submit">Send Feedback to WhatsApp</button>
+      </div>
+    </form>
+
+    <p class="note"> <code>919655736002</code> </p>
+
+    <div id="fallback" class="hidden">
+      <p><strong>Unable to open WhatsApp automatically?</strong></p>
+      <p>Copy the message below and paste into your WhatsApp chat with us:</p>
+      <textarea id="fallbackText" rows="6" style="width:100%;"></textarea>
+      <button id="copyBtn">Copy to Clipboard</button>
+    </div>
+  </div>
+
+  <script>
+    // ====== EDIT THIS: put the recipient number (your WhatsApp) here ======
+    const RECIPIENT_WHATSAPP_NUMBER = "919655736002"; // e.g. "919876543210"
+
+    const form = document.getElementById('feedbackForm');
+    const fallback = document.getElementById('fallback');
+    const fallbackText = document.getElementById('fallbackText');
+    const copyBtn = document.getElementById('copyBtn');
+
+    function collectSelectedGames() {
+      const checks = document.querySelectorAll('input[name="games"]:checked');
+      const arr = Array.from(checks).map(c => c.value);
+      return arr.length ? arr.join(", ") : "None selected";
+    }
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const name = document.getElementById('name').value.trim() || "Anonymous";
+      const phone = document.getElementById('phone').value.trim() || "Not provided";
+      const rating = document.getElementById('rating').value;
+      const games = collectSelectedGames();
+      const comments = document.getElementById('comments').value.trim() || "No comments";
+
+      const message =
+`Diwali Feedback 🌟
+Name: ${name}
+Phone: ${phone}
+Rating: ${rating}
+Games enjoyed: ${games}
+Comments: ${comments}
+-- End of feedback --`;
+
+      // Build WhatsApp URL (wa.me)
+      if (!RECIPIENT_WHATSAPP_NUMBER || RECIPIENT_WHATSAPP_NUMBER.includes("RECIPIENT")) {
+        alert("Please edit the HTML and set RECIPIENT_WHATSAPP_NUMBER to your number (e.g. 919876543210).");
+        return;
+      }
+
+      const encoded = encodeURIComponent(message);
+      const waUrl = `https://wa.me/${RECIPIENT_WHATSAPP_NUMBER}?text=${encoded}`;
+      const webUrl = `https://web.whatsapp.com/send?phone=${RECIPIENT_WHATSAPP_NUMBER}&text=${encoded}`;
+
+      // Try to open wa.me (works on mobile). If desktop, open web.whatsapp.
+      // Use a small timeout to detect if opening whatsapp failed (best-effort).
+      let opened = false;
+      try {
+        // On mobile, wa.me should open the WhatsApp app.
+        window.open(waUrl, '_blank');
+        opened = true;
+      } catch (err) {
+        // fallback to web
+        try {
+          window.open(webUrl, '_blank');
+          opened = true;
+        } catch (err2) {
+          opened = false;
+        }
+      }
+
+      // Also show fallback area with the message so user can copy/paste if needed
+      fallbackText.value = message;
+      fallback.classList.remove('hidden');
+
+      // Optional: show a small instruction to user (they must press send in WhatsApp)
+      alert("WhatsApp will open with a pre-filled message. Please press SEND in WhatsApp to deliver the feedback. If WhatsApp does not open, copy the message from the box shown and paste into your WhatsApp chat.");
+    });
+
+    copyBtn.addEventListener('click', function() {
+      fallbackText.select();
+      document.execCommand('copy');
+      copyBtn.textContent = "Copied!";
+      setTimeout(() => { copyBtn.textContent = "Copy to Clipboard"; }, 1800);
+    });
+  </script>
+</body>
+</html>
